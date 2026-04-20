@@ -1,5 +1,4 @@
 using System.Globalization;
-using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
 
@@ -55,18 +54,13 @@ internal static class SubmitPacingPatch
 
     private static void LogDecisionIfNeeded(FramePacingDecision decision)
     {
-        if (!DesktopFramePacingFixMod.GetVerboseLogging())
-        {
-            return;
-        }
-
         if (hasLastDecision && lastDecision == decision)
         {
             return;
         }
 
-        UniLog.Log(
-            $"[DesktopFramePacingFix] Mode={decision.Mode}, TargetFramerate={decision.TargetFramerate?.ToString(CultureInfo.InvariantCulture) ?? "None"}");
+        DesktopFramePacingFixMod.DebugFunc(
+            () => $"[DesktopFramePacingFix] Mode={decision.Mode}, TargetFramerate={decision.TargetFramerate?.ToString(CultureInfo.InvariantCulture) ?? "None"}");
 
         lastDecision = decision;
         hasLastDecision = true;

@@ -25,7 +25,6 @@ The mod owns its own frame pacing settings instead of writing to Resonite's buil
 - `MaximumForegroundFramerate`
 - `BackgroundLimitEnabled`
 - `MaximumBackgroundFramerate`
-- `VerboseLogging`
 
 When `Enabled` is `false`, or when the session is not VR-capable, the mod falls back to the original engine behavior.
 

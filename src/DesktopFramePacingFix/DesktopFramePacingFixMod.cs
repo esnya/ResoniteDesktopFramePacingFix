@@ -1,5 +1,6 @@
 using System.Reflection;
 using HarmonyLib;
+using FrooxEngine;
 using ResoniteModLoader;
 #if USE_RESONITE_HOT_RELOAD_LIB
 using ResoniteHotReloadLib;
@@ -15,8 +16,12 @@ public sealed class DesktopFramePacingFixMod : ResoniteMod
     private static readonly Assembly Assembly = typeof(DesktopFramePacingFixMod).Assembly;
     private static readonly string HarmonyId = $"com.nekometer.esnya.{Assembly.GetName().Name}";
     private static readonly Harmony Harmony = new(HarmonyId);
+    private static readonly Lock PatchStateLock = new();
 
     private static ModConfiguration? config;
+    private static CancellationTokenSource? monitorCancellationTokenSource;
+    private static Task? monitorTask;
+    private static bool patchesApplied;
 
     [AutoRegisterConfigKey]
     private static readonly ModConfigurationKey<bool> EnabledKey = new(
@@ -49,12 +54,6 @@ public sealed class DesktopFramePacingFixMod : ResoniteMod
         "Maximum background framerate used by the workaround.",
         computeDefault: () => 30,
         valueValidator: static value => value is >= 5 and <= 144);
-
-    [AutoRegisterConfigKey]
-    private static readonly ModConfigurationKey<bool> VerboseLoggingKey = new(
-        "VerboseLogging",
-        "Log pacing mode transitions and effective limits.",
-        computeDefault: () => false);
 
     /// <inheritdoc />
     public override string Name =>
@@ -107,19 +106,14 @@ public sealed class DesktopFramePacingFixMod : ResoniteMod
         return GetConfigValue(MaximumBackgroundFramerateKey, fallback: 30);
     }
 
-    internal static bool GetVerboseLogging()
-    {
-        return GetConfigValue(VerboseLoggingKey, fallback: false);
-    }
-
 #if USE_RESONITE_HOT_RELOAD_LIB
     /// <summary>
     /// Removes Harmony patches before a hot reload cycle.
     /// </summary>
     public static void BeforeHotReload()
     {
-        SubmitPacingPatch.ResetState();
-        Harmony.UnpatchAll(HarmonyId);
+        StopMonitoring();
+        SetPatchesApplied(shouldPatch: false);
     }
 
     /// <summary>
@@ -144,17 +138,110 @@ public sealed class DesktopFramePacingFixMod : ResoniteMod
         }
 
         SubmitPacingPatch.ResetState();
+        StartMonitoring();
 
 #if USE_RESONITE_HOT_RELOAD_LIB
         HotReloader.RegisterForHotReload(mod);
 #endif
-
-        Harmony.PatchAll(Assembly);
     }
 
     private static void HandleConfigurationChanged(ConfigurationChangedEvent _)
     {
         SubmitPacingPatch.ResetState();
+        RefreshPatchState();
+    }
+
+    private static void StartMonitoring()
+    {
+        StopMonitoring();
+        monitorCancellationTokenSource = new CancellationTokenSource();
+        CancellationToken cancellationToken = monitorCancellationTokenSource.Token;
+        monitorTask = Task.Run(() => MonitorPatchStateAsync(cancellationToken), cancellationToken);
+    }
+
+    private static void StopMonitoring()
+    {
+        CancellationTokenSource? cancellationTokenSource = monitorCancellationTokenSource;
+        Task? runningMonitorTask = monitorTask;
+
+        monitorCancellationTokenSource = null;
+        monitorTask = null;
+
+        if (cancellationTokenSource is null)
+        {
+            return;
+        }
+
+        cancellationTokenSource.Cancel();
+        try
+        {
+            runningMonitorTask?.Wait();
+        }
+        catch (AggregateException exception) when (exception.InnerExceptions.All(static inner => inner is TaskCanceledException))
+        {
+        }
+        finally
+        {
+            cancellationTokenSource.Dispose();
+        }
+    }
+
+    private static async Task MonitorPatchStateAsync(CancellationToken cancellationToken)
+    {
+        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(100));
+        RefreshPatchState();
+
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
+            {
+                RefreshPatchState();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private static void RefreshPatchState()
+    {
+        bool shouldPatch = false;
+
+        if (Engine.Current?.InputInterface is InputInterface inputInterface)
+        {
+            SessionActivationState activation = SessionActivationState.Create(
+                inputInterface.HeadOutputDevice,
+                IsEnabled());
+
+            shouldPatch = activation.ShouldUseWorkaround && !inputInterface.VR_Active;
+        }
+
+        SetPatchesApplied(shouldPatch);
+    }
+
+    private static void SetPatchesApplied(bool shouldPatch)
+    {
+        lock (PatchStateLock)
+        {
+            if (patchesApplied == shouldPatch)
+            {
+                return;
+            }
+
+            SubmitPacingPatch.ResetState();
+            if (shouldPatch)
+            {
+                Harmony.PatchAll(Assembly);
+            }
+            else
+            {
+                Harmony.UnpatchAll(HarmonyId);
+            }
+
+            patchesApplied = shouldPatch;
+        }
+
+        DebugFunc(() => $"[DesktopFramePacingFix] Harmony patches {(shouldPatch ? "applied" : "removed")}.");
     }
 
     private static T GetConfigValue<T>(ModConfigurationKey<T> key, T fallback)
