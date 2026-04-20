@@ -131,11 +131,7 @@ public sealed class DesktopFramePacingFixMod : ResoniteMod
         ArgumentNullException.ThrowIfNull(mod);
 
         config = mod.GetConfiguration();
-        if (config is not null)
-        {
-            config.OnThisConfigurationChanged -= HandleConfigurationChanged;
-            config.OnThisConfigurationChanged += HandleConfigurationChanged;
-        }
+        config?.OnThisConfigurationChanged += HandleConfigurationChanged;
 
         SubmitPacingPatch.ResetState();
         AttachEventHandlers();
