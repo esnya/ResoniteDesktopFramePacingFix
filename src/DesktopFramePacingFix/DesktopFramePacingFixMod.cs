@@ -19,8 +19,8 @@ public sealed class DesktopFramePacingFixMod : ResoniteMod
     private static readonly Lock PatchStateLock = new();
 
     private static ModConfiguration? config;
-    private static CancellationTokenSource? monitorCancellationTokenSource;
-    private static Task? monitorTask;
+    private static Engine? subscribedEngine;
+    private static InputInterface? subscribedInputInterface;
     private static bool patchesApplied;
 
     [AutoRegisterConfigKey]
@@ -112,7 +112,7 @@ public sealed class DesktopFramePacingFixMod : ResoniteMod
     /// </summary>
     public static void BeforeHotReload()
     {
-        StopMonitoring();
+        DetachEventHandlers();
         SetPatchesApplied(shouldPatch: false);
     }
 
@@ -138,7 +138,8 @@ public sealed class DesktopFramePacingFixMod : ResoniteMod
         }
 
         SubmitPacingPatch.ResetState();
-        StartMonitoring();
+        AttachEventHandlers();
+        RefreshPatchState();
 
 #if USE_RESONITE_HOT_RELOAD_LIB
         HotReloader.RegisterForHotReload(mod);
@@ -151,60 +152,68 @@ public sealed class DesktopFramePacingFixMod : ResoniteMod
         RefreshPatchState();
     }
 
-    private static void StartMonitoring()
+    private static void AttachEventHandlers()
     {
-        StopMonitoring();
-        monitorCancellationTokenSource = new CancellationTokenSource();
-        CancellationToken cancellationToken = monitorCancellationTokenSource.Token;
-        monitorTask = Task.Run(() => MonitorPatchStateAsync(cancellationToken), cancellationToken);
-    }
-
-    private static void StopMonitoring()
-    {
-        CancellationTokenSource? cancellationTokenSource = monitorCancellationTokenSource;
-        Task? runningMonitorTask = monitorTask;
-
-        monitorCancellationTokenSource = null;
-        monitorTask = null;
-
-        if (cancellationTokenSource is null)
+        Engine? currentEngine = Engine.Current;
+        if (currentEngine is null)
         {
             return;
         }
 
-        cancellationTokenSource.Cancel();
-        try
+        if (!ReferenceEquals(subscribedEngine, currentEngine))
         {
-            runningMonitorTask?.Wait();
+            DetachEventHandlers();
+            currentEngine.OnReady += HandleEngineReady;
+            currentEngine.OnShutdown += HandleEngineShutdown;
+            subscribedEngine = currentEngine;
         }
-        catch (AggregateException exception) when (exception.InnerExceptions.All(static inner => inner is TaskCanceledException))
-        {
-        }
-        finally
-        {
-            cancellationTokenSource.Dispose();
-        }
+
+        AttachInputInterfaceHandler(currentEngine.InputInterface);
     }
 
-    private static async Task MonitorPatchStateAsync(CancellationToken cancellationToken)
+    private static void DetachEventHandlers()
     {
-        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(100));
-        RefreshPatchState();
+        subscribedInputInterface?.VRActiveChanged -= HandleVrActiveChanged;
+        subscribedInputInterface = null;
 
-        try
+        subscribedEngine?.OnReady -= HandleEngineReady;
+        subscribedEngine?.OnShutdown -= HandleEngineShutdown;
+        subscribedEngine = null;
+    }
+
+    private static void AttachInputInterfaceHandler(InputInterface? inputInterface)
+    {
+        if (ReferenceEquals(subscribedInputInterface, inputInterface))
         {
-            while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
-            {
-                RefreshPatchState();
-            }
+            return;
         }
-        catch (OperationCanceledException)
-        {
-        }
+
+        subscribedInputInterface?.VRActiveChanged -= HandleVrActiveChanged;
+
+        subscribedInputInterface = inputInterface;
+        subscribedInputInterface?.VRActiveChanged += HandleVrActiveChanged;
+    }
+
+    private static void HandleEngineReady()
+    {
+        AttachEventHandlers();
+        RefreshPatchState();
+    }
+
+    private static void HandleEngineShutdown()
+    {
+        DetachEventHandlers();
+        SetPatchesApplied(shouldPatch: false);
+    }
+
+    private static void HandleVrActiveChanged(bool _)
+    {
+        RefreshPatchState();
     }
 
     private static void RefreshPatchState()
     {
+        AttachEventHandlers();
         bool shouldPatch = false;
 
         if (Engine.Current?.InputInterface is InputInterface inputInterface)
