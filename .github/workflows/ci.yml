@@ -29,27 +29,27 @@ jobs:
           Invoke-WebRequest https://github.com/resonite-modding-group/ResoniteModLoader/releases/latest/download/0Harmony.dll -OutFile Resonite\0Harmony.dll
 
       - name: Restore
-        run: dotnet restore .\ResoniteDesktopFramePacingFix.slnx
+        run: dotnet restore .\DesktopFramePacingFix.slnx
 
       - name: Format
-        run: dotnet format .\ResoniteDesktopFramePacingFix.slnx --verify-no-changes --no-restore
+        run: dotnet format .\DesktopFramePacingFix.slnx --verify-no-changes --no-restore
 
       - name: Build
-        run: dotnet build .\ResoniteDesktopFramePacingFix.slnx -c Release --no-restore
+        run: dotnet build .\DesktopFramePacingFix.slnx -c Release --no-restore
 
       - name: Test
-        run: dotnet test .\ResoniteDesktopFramePacingFix.slnx -c Release --no-build --logger "console;verbosity=normal"
+        run: dotnet test .\DesktopFramePacingFix.slnx -c Release --no-build --logger "console;verbosity=normal"
 
       - name: Pack artifact
         if: startsWith(github.ref, 'refs/tags/v')
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-          Copy-Item .\src\ResoniteDesktopFramePacingFix\bin\Release\ResoniteDesktopFramePacingFix.dll .\artifacts\
+          Copy-Item .\src\DesktopFramePacingFix\bin\Release\DesktopFramePacingFix.dll .\artifacts\
 
       - name: Upload artifact
         if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
           name: ResoniteDesktopFramePacingFix
-          path: artifacts\ResoniteDesktopFramePacingFix.dll
+          path: artifacts\DesktopFramePacingFix.dll
