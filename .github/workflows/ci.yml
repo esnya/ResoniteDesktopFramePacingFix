@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Prepare fallback references
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path Resonite | Out-Null
+          Invoke-WebRequest https://github.com/resonite-modding-group/ResoniteModLoader/releases/latest/download/ResoniteModLoader.dll -OutFile Resonite\ResoniteModLoader.dll
+          Invoke-WebRequest https://github.com/resonite-modding-group/ResoniteModLoader/releases/latest/download/0Harmony.dll -OutFile Resonite\0Harmony.dll
+
+      - name: Restore
+        run: dotnet restore .\ResoniteDesktopFramePacingFix.slnx
+
+      - name: Format
+        run: dotnet format .\ResoniteDesktopFramePacingFix.slnx --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build .\ResoniteDesktopFramePacingFix.slnx -c Release --no-restore
+
+      - name: Test
+        run: dotnet test .\ResoniteDesktopFramePacingFix.slnx -c Release --no-build --logger "console;verbosity=normal"
+
+      - name: Pack artifact
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Copy-Item .\src\ResoniteDesktopFramePacingFix\bin\Release\ResoniteDesktopFramePacingFix.dll .\artifacts\
+
+      - name: Upload artifact
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: ResoniteDesktopFramePacingFix
+          path: artifacts\ResoniteDesktopFramePacingFix.dll

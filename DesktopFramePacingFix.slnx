@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DesktopFramePacingFix/DesktopFramePacingFix.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DesktopFramePacingFix.Tests/DesktopFramePacingFix.Tests.csproj" />
+  </Folder>
+</Solution>
