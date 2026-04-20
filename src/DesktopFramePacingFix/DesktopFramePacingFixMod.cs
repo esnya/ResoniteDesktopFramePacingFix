@@ -65,8 +65,12 @@ public sealed class DesktopFramePacingFixMod : ResoniteMod
 
     /// <inheritdoc />
     public override string Version =>
-        (Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? string.Empty)
-        .Split('+')[0];
+        Assembly
+            .GetCustomAttributes<AssemblyMetadataAttribute>()
+            .FirstOrDefault(static metadata => metadata.Key == "ModVersion")
+            ?.Value
+        ?? (Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? string.Empty)
+            .Split('+')[0];
 
     /// <inheritdoc />
     public override string Link =>

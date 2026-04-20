@@ -7,11 +7,14 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>Resonite;Mod;ResoniteModLoader;FramePacing;VSync</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/esnya/ResoniteDesktopFramePacingFix</RepositoryUrl>
+    <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <AssemblyName Condition="'$(AssemblyName)'==''">DesktopFramePacingFix</AssemblyName>
     <AssemblyTitle Condition="'$(AssemblyTitle)'==''">Desktop Frame Pacing Fix</AssemblyTitle>
     <Product Condition="'$(Product)'==''">$(AssemblyName)</Product>
     <RootNamespace Condition="'$(RootNamespace)'==''">$(AssemblyName)</RootNamespace>
-    <Version>0.1.0</Version>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -130,6 +133,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MinVer" PrivateAssets="all" />
     <EditorConfigFiles Remove="$(MSBuildProjectDirectory)**\*.editorconfig" />
     <None Include="$(MSBuildThisFileDirectory)README.md" Link="README.md" />
     <None Include="$(MSBuildThisFileDirectory)LICENSE" Link="LICENSE" />
@@ -137,4 +141,13 @@
     <None Include="$(MSBuildThisFileDirectory).gitignore" Link=".gitignore" />
     <None Include="$(MSBuildThisFileDirectory).gitattributes" Link=".gitattributes" />
   </ItemGroup>
+
+  <Target Name="PopulateModAssemblyMetadata" AfterTargets="MinVer" BeforeTargets="GenerateAssemblyInfo">
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ModVersion</_Parameter1>
+        <_Parameter2>$(Version)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
 </Project>

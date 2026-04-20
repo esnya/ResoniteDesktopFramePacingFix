@@ -13,8 +13,9 @@ A [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoade
 ## Installation
 
 1. Install [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoader).
-2. Place `DesktopFramePacingFix.dll` into your `rml_mods` directory.
-3. Launch Resonite.
+2. Download `DesktopFramePacingFix.dll` from [GitHub Releases](https://github.com/esnya/ResoniteDesktopFramePacingFix/releases).
+3. Place `DesktopFramePacingFix.dll` into your `rml_mods` directory.
+4. Launch Resonite.
 
 ## Mod Settings
 
@@ -61,3 +62,9 @@ Hot reload is opt-in. If `ResoniteHotReloadLib.dll` and `ResoniteHotReloadLibCor
 ```sh
 dotnet build .\DesktopFramePacingFix.slnx -c Debug -p:EnableHotReloadLibs=true -p:CopyToMods=true -p:ResonitePath="C:\Program Files (x86)\Steam\steamapps\common\Resonite"
 ```
+
+## Versioning And Release
+
+- Release version is derived from Git tags through `MinVer`.
+- Push a tag in the form `vX.Y.Z` to create a GitHub Release for that version automatically.
+- Non-tag builds keep using CI checks, but their build version is a `MinVer`-calculated pre-release version instead of a fixed repository version.
