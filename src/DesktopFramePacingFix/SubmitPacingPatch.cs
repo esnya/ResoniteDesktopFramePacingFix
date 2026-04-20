@@ -59,7 +59,7 @@ internal static class SubmitPacingPatch
             return;
         }
 
-        DesktopFramePacingFixMod.DebugFunc(
+        ResoniteModLoader.ResoniteMod.DebugFunc(
             () => $"[DesktopFramePacingFix] Mode={decision.Mode}, TargetFramerate={decision.TargetFramerate?.ToString(CultureInfo.InvariantCulture) ?? "None"}");
 
         lastDecision = decision;
