@@ -1,6 +1,6 @@
 using System.Reflection;
-using HarmonyLib;
 using FrooxEngine;
+using HarmonyLib;
 using ResoniteModLoader;
 #if USE_RESONITE_HOT_RELOAD_LIB
 using ResoniteHotReloadLib;
