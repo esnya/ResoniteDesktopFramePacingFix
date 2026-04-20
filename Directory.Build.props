@@ -113,7 +113,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(FrooxEnginePresent)'!='true'">
-    <PackageReference Include="Resonite.GameLibs" />
+    <PackageReference Include="Resonite.GameLibs" GeneratePathProperty="true" />
     <Reference Include="ResoniteModLoader">
       <HintPath>$(MSBuildThisFileDirectory)Resonite\ResoniteModLoader.dll</HintPath>
       <Private>$(IsTestProject)</Private>
@@ -130,6 +130,13 @@
       <HintPath>$(MSBuildThisFileDirectory)Resonite\ResoniteHotReloadLibCore.dll</HintPath>
       <Private>$(IsTestProject)</Private>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IsTestProject)'=='true' and '$(FrooxEnginePresent)'!='true'">
+    <ContentWithTargetPath Include="$(PkgResonite_GameLibs)\ref\net9.0\*.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>%(Filename)%(Extension)</TargetPath>
+    </ContentWithTargetPath>
   </ItemGroup>
 
   <ItemGroup>
@@ -150,4 +157,5 @@
       </AssemblyAttribute>
     </ItemGroup>
   </Target>
+
 </Project>

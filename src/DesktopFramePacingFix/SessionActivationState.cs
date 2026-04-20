@@ -6,8 +6,13 @@ internal readonly record struct SessionActivationState(bool IsVrCapableSession, 
 {
     public bool ShouldUseWorkaround => IsVrCapableSession && IsModEnabled;
 
+    public static SessionActivationState Create(bool isVrViewSupported, bool isModEnabled)
+    {
+        return new SessionActivationState(isVrViewSupported, isModEnabled);
+    }
+
     public static SessionActivationState Create(HeadOutputDevice headOutputDevice, bool isModEnabled)
     {
-        return new SessionActivationState(headOutputDevice.IsVRViewSupported(), isModEnabled);
+        return Create(headOutputDevice.IsVRViewSupported(), isModEnabled);
     }
 }

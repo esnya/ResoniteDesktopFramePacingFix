@@ -1,5 +1,3 @@
-using Renderite.Shared;
-
 namespace DesktopFramePacingFix.Tests;
 
 public sealed class SessionActivationStateTests
@@ -7,7 +5,7 @@ public sealed class SessionActivationStateTests
     [Fact]
     public void CreateWhenVrCapableShouldEnableWorkaroundIfModEnabled()
     {
-        SessionActivationState state = SessionActivationState.Create(HeadOutputDevice.SteamVR, isModEnabled: true);
+        SessionActivationState state = SessionActivationState.Create(isVrViewSupported: true, isModEnabled: true);
 
         Assert.True(state.IsVrCapableSession);
         Assert.True(state.ShouldUseWorkaround);
@@ -16,7 +14,7 @@ public sealed class SessionActivationStateTests
     [Fact]
     public void CreateWhenScreenOnlyShouldStayInactive()
     {
-        SessionActivationState state = SessionActivationState.Create(HeadOutputDevice.Screen, isModEnabled: true);
+        SessionActivationState state = SessionActivationState.Create(isVrViewSupported: false, isModEnabled: true);
 
         Assert.False(state.IsVrCapableSession);
         Assert.False(state.ShouldUseWorkaround);
