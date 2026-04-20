@@ -38,19 +38,19 @@ When `Enabled` is `false`, or when the session is not VR-capable, the mod falls 
 
 ### Build
 
-```powershell
+```sh
 dotnet build .\DesktopFramePacingFix.slnx -c Debug -p:ResonitePath="C:\Program Files (x86)\Steam\steamapps\common\Resonite"
 ```
 
 ### Test
 
-```powershell
+```sh
 dotnet test .\DesktopFramePacingFix.slnx -c Debug -p:ResonitePath="C:\Program Files (x86)\Steam\steamapps\common\Resonite"
 ```
 
 ### Copy to `rml_mods`
 
-```powershell
+```sh
 dotnet build .\DesktopFramePacingFix.slnx -c Debug -p:CopyToMods=true -p:ResonitePath="C:\Program Files (x86)\Steam\steamapps\common\Resonite"
 ```
 
@@ -58,6 +58,6 @@ dotnet build .\DesktopFramePacingFix.slnx -c Debug -p:CopyToMods=true -p:Resonit
 
 Hot reload is opt-in. If `ResoniteHotReloadLib.dll` and `ResoniteHotReloadLibCore.dll` are present, enable it with:
 
-```powershell
+```sh
 dotnet build .\DesktopFramePacingFix.slnx -c Debug -p:EnableHotReloadLibs=true -p:CopyToMods=true -p:ResonitePath="C:\Program Files (x86)\Steam\steamapps\common\Resonite"
 ```
