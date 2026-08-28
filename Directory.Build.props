@@ -133,7 +133,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(IsTestProject)'=='true' and '$(FrooxEnginePresent)'!='true'">
-    <ContentWithTargetPath Include="$(PkgResonite_GameLibs)\ref\net9.0\*.dll">
+    <ContentWithTargetPath Include="$(PkgResonite_GameLibs)\ref\net10.0\*.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <TargetPath>%(Filename)%(Extension)</TargetPath>
     </ContentWithTargetPath>

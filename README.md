@@ -13,7 +13,7 @@ A [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoade
 ## Installation
 
 1. Install [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoader).
-2. Download `DesktopFramePacingFix.dll` from [GitHub Releases](https://github.com/esnya/ResoniteDesktopFramePacingFix/releases).
+2. Download [`DesktopFramePacingFix.dll`](https://github.com/esnya/ResoniteDesktopFramePacingFix/releases/latest/download/DesktopFramePacingFix.dll).
 3. Place `DesktopFramePacingFix.dll` into your `rml_mods` directory.
 4. Launch Resonite.
 
@@ -28,6 +28,10 @@ The mod owns its own frame pacing settings instead of writing to Resonite's buil
 - `MaximumBackgroundFramerate`
 
 When `Enabled` is `false`, or when the session is not VR-capable, the mod falls back to the original engine behavior.
+
+## Compatibility
+
+This workaround is still used with Resonite `2026.8.27.1094`; release builds are compiled against that public game-assembly version. Remove the mod if the upstream frame-pacing issues are fixed and this workaround begins to conflict with the engine.
 
 ## Development
 
@@ -67,4 +71,5 @@ dotnet build .\DesktopFramePacingFix.slnx -c Debug -p:EnableHotReloadLibs=true -
 
 - Release version is derived from Git tags through `MinVer`.
 - Push a tag in the form `vX.Y.Z` to create a GitHub Release for that version automatically.
+- The current compatibility rebuild is intended for `v0.1.1`.
 - Non-tag builds keep using CI checks, but their build version is a `MinVer`-calculated pre-release version instead of a fixed repository version.
